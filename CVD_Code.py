@@ -29,6 +29,11 @@ print(Data_CVD['RestingECG'].cat.categories)
 Data_CVD['Angina'] = Data_CVD['Angina'].astype('category')
 print(Data_CVD['Angina'].cat.categories)
 
+Data_CVD = pd.get_dummies(Data_CVD,
+               columns = ["Sex", "RestingECG", "Angina"]
+               )  # Convert to dummy variable (presence/absence indicator)
+display(Data_CVD)
+
 # Advanced Data Exploration
 Age_Desc = print(Data_CVD.describe())
 Age_Sex_Desc = (Data_CVD.groupby('Sex')['Age']
