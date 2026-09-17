@@ -87,9 +87,19 @@ print(scaled_test)
 # TRAINING
 
 # Set variables
-pred = scaled_train[["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]]
-out = scaled_train["HeartDisease"]
+train_predict = scaled_train[["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]]
+train_outcome = scaled_train["HeartDisease"]
 
 # Train model
 model = LogisticRegression(max_iter = 1000)
-model.fit(pred, out)
+model.fit(train_predict, train_outcome)
+
+
+# PREDICT
+
+test_predict = scaled_test[["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]]
+test_outcome = scaled_test["HeartDisease"]
+
+prediction = model.predict(test_predict)
+
+print(prediction)
