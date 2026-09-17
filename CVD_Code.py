@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import random
 import statsmodels.api as sm
+from sklearn import linear_model
+from sklearn.preprocessing import StandardScaler
 from pandas._config import display
 
 # Set Parameters
@@ -68,6 +70,14 @@ train_ds = ds.drop(ds.index[test_idx])
 
 print(test_ds.info)
 print(train_ds.info)
+
+# Scaling
+scale = StandardScaler()
+scaled_train = scale.fit_transform(train_ds)
+scaled_test = scale.transform(test_ds)
+print(scaled_train)
+print(scaled_test)
+
 
 # TRAINING
 
