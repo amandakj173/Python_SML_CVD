@@ -4,6 +4,8 @@
 import pandas as pd
 import numpy as np
 import random
+import statsmodels.api as sm
+from pandas._config import display
 
 # Set Parameters
 pd.set_option("display.precision", 3)
@@ -11,52 +13,70 @@ pd.set_option('display.max_columns', 20)
 pd.set_option('display.width', 2000)
 
 # Import Data
-Data_CVD = pd.read_csv("heartdisease.csv")
+ds = pd.read_csv("heartdisease.csv")
 
 # Basic Data Exploration
-print(Data_CVD)
-Data_CVD.info()
+print(ds)
+ds.info()
 
 # Organisation
-Data_CVD[["RestingBP","Cholesterol"]] = (
-    Data_CVD[["RestingBP","Cholesterol"]].replace(0, np.nan)
+ds[["RestingBP","Cholesterol"]] = (
+    ds[["RestingBP","Cholesterol"]].replace(0, np.nan)
 )
-Data_CVD = Data_CVD.dropna()
-Data_CVD['Sex'] = Data_CVD['Sex'].astype('category')
-print(Data_CVD['Sex'].cat.categories)
-Data_CVD['RestingECG'] = Data_CVD['RestingECG'].astype('category')
-print(Data_CVD['RestingECG'].cat.categories)
-Data_CVD['Angina'] = Data_CVD['Angina'].astype('category')
-print(Data_CVD['Angina'].cat.categories)
+ds = ds.dropna()
 
-Data_CVD = pd.get_dummies(Data_CVD,
-               columns = ["Sex", "RestingECG", "Angina"]
-               )  # Convert to dummy variable (presence/absence indicator)
-display(Data_CVD)
+# Convert type
+ds['Sex'] = ds['Sex'].astype('category')  # Convert to categorical
+ds['RestingECG'] = ds['RestingECG'].astype('category')
+ds['Angina'] = ds['Angina'].astype('category')
+
+ds = pd.get_dummies(ds,
+                    columns = ["Sex", "RestingECG", "Angina"],
+                    drop_first = True
+                    )
+
+bool_col = ['Sex_M', 'RestingECG_Normal', 'RestingECG_ST', 'Angina_Y']
+for col in bool_col:
+    ds[col] = ds[col].astype(int)
+
+print(ds.dtypes)
 
 # Advanced Data Exploration
-Age_Desc = print(Data_CVD.describe())
-Age_Sex_Desc = (Data_CVD.groupby('Sex')['Age']
-           .agg(mean = 'mean', sd = 'std')
-           .reset_index()
-           )
-print(Age_Sex_Desc)
-Data_CVD['HeartDisease'].value_counts(normalize = True)
+print(ds.describe())
+age_sex_desc = (
+    ds.groupby("Sex_M")["Age"].agg(mean = "mean", sd = "std").reset_index()
+)
+print(age_sex_desc)
+
+ds['HeartDisease'].value_counts(normalize = True)
 
 
 # PREPROCESSING
 
-# Randomisation
+# Test-Train Split
 random.seed(123)
 
-# Split Sets
-Observation = len(Data_CVD)  # Find number observations
-Test_IDX = np.random.choice(
-    Observation,
-    size = round(Observation * 0.3),
+obs = len(ds)
+test_idx = np.random.choice(
+    obs,
+    size = round(obs * 0.3),
     replace = False
-)  # Randomly select 30% row indices
-Test_Data = Data_CVD.iloc[Test_IDX]  # Attribute random 30% to test
-Train_Data = Data_CVD.drop(Data_CVD.index[Test_IDX])  # Drop random 30% and attribute rest to train
-print(Test_Data.info)  # Check no. test observations correct
-print(Train_Data.info)  # Check no. train observations correct
+)
+
+test_ds = ds.iloc[test_idx]
+train_ds = ds.drop(ds.index[test_idx])
+
+print(test_ds.info)
+print(train_ds.info)
+
+# TRAINING
+
+X = Train_Data[
+    ["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]
+]  # Set predictors from training dataset
+Train_Data[["Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]] = Train_Data[["Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]].astype(int)
+X = sm.add_constant(X)  # Add intercept to predictors
+Y = Train_Data["HeartDisease"]  # Set dependent variable
+Train_Model = sm.GLM(Y, X, family = sm.families.Binomial())  # Fit GMM
+Results = Train_Model.fit()
+print(Results.summary())
