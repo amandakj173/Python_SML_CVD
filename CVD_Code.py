@@ -7,6 +7,7 @@ import random
 import statsmodels.api as sm
 from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 from pandas._config import display
 
 # Set Parameters
@@ -73,20 +74,22 @@ print(train_ds.info)
 
 # Scaling
 scale = StandardScaler()
-scaled_train = scale.fit_transform(train_ds)
-scaled_test = scale.transform(test_ds)
-print(scaled_train)
-print(scaled_test)
 
+scaled_train = train_ds.copy()
+scaled_train[["Age", "RestingBP", "MaxHR", "HeartPeakReading"]] = scale.fit_transform(train_ds[["Age", "RestingBP", "MaxHR", "HeartPeakReading"]])
+print(scaled_train)
+
+
+scaled_test = test_ds.copy()
+scaled_test[["Age", "RestingBP", "MaxHR", "HeartPeakReading"]] = scale.transform(test_ds[["Age", "RestingBP", "MaxHR", "HeartPeakReading"]])
+print(scaled_test)
 
 # TRAINING
 
-X = Train_Data[
-    ["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]
-]  # Set predictors from training dataset
-Train_Data[["Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]] = Train_Data[["Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]].astype(int)
-X = sm.add_constant(X)  # Add intercept to predictors
-Y = Train_Data["HeartDisease"]  # Set dependent variable
-Train_Model = sm.GLM(Y, X, family = sm.families.Binomial())  # Fit GMM
-Results = Train_Model.fit()
-print(Results.summary())
+# Set variables
+pred = scaled_train[["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]]
+out = scaled_train["HeartDisease"]
+
+# Train model
+model = LogisticRegression(max_iter = 1000)
+model.fit(pred, out)
