@@ -3,12 +3,14 @@
 # Import Packages
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import random
 import statsmodels.api as sm
 from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from pandas._config import display
+from sklearn import metrics
+
 
 # Set Parameters
 pd.set_option("display.precision", 3)
@@ -98,8 +100,20 @@ model.fit(train_predict, train_outcome)
 # PREDICT
 
 test_predict = scaled_test[["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "HeartPeakReading", "Sex_M", "RestingECG_Normal", "RestingECG_ST", "Angina_Y"]]
-test_outcome = scaled_test["HeartDisease"]
 
-prediction = model.predict(test_predict)
+predicted = model.predict(test_predict)
+print(predicted)
 
-print(prediction)
+
+# EVALUATION
+
+# confusion matrix
+actual = scaled_test["HeartDisease"]
+
+conf_matrix = metrics.confusion_matrix(actual, predicted)
+
+# confusion matrix visualisation
+cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = conf_matrix, display_labels = [0, 1])
+
+cm_display.plot()
+plt.show()
